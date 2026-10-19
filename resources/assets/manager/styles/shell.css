@@ -1,0 +1,208 @@
+/* The frame: the top bar, the table list on the side, and the page area. */
+
+.app {
+  display: grid;
+  grid-template-columns: 272px 1fr;
+  grid-template-rows: 56px 1fr;
+  height: 100vh;
+}
+/* inside Vito's page: the bar lines up with Vito's own 48px header */
+.embedded .app {
+  grid-template-rows: 48px 1fr;
+}
+.top {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+  min-width: 0;
+}
+.top .crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.top .sep {
+  color: var(--muted-foreground);
+}
+.top .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.top .spacer {
+  flex: 1;
+}
+.engine-badge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+/* the heart is the pink of Vito's own sponsor button */
+.top .sponsor svg {
+  color: #ec4899;
+}
+.top .sponsor:hover svg {
+  fill: #ec4899;
+}
+.side {
+  border-right: 1px solid var(--border);
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.side .side-head {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.side .side-list {
+  flex: 1;
+  overflow: auto;
+  padding: 6px;
+}
+.side .group {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  padding: 10px 8px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.side .item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--foreground);
+  min-width: 0;
+}
+.side .item:hover {
+  background: var(--hover);
+}
+.side .item.active {
+  background: var(--accent);
+  font-weight: 500;
+}
+.side .item .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.side .item .count {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.side .item svg {
+  color: var(--muted-foreground);
+}
+.side .nav {
+  padding: 6px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.main {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.page {
+  padding: 20px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+/* the rows tab fills the window: the grid scrolls, the pager stays in view */
+.page.fill {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 14px;
+}
+.page.fill > .stack {
+  flex: 1;
+  min-height: 0;
+}
+.page.fill .grid-wrap {
+  flex: 1;
+  max-height: none;
+}
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+a.btn:hover {
+  text-decoration: none;
+}
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.page-head > .grow {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.page-head > .row {
+  flex-wrap: wrap;
+}
+.page-head h1 {
+  font-size: 20px;
+  line-height: 28px;
+  margin: 0;
+  font-weight: 600;
+  word-break: break-word;
+}
+.page-head .sub {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--muted-foreground);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.empty svg.i {
+  width: 28px;
+  height: 28px;
+}

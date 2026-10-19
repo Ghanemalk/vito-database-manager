@@ -31,7 +31,7 @@
 
 ## Checklist
 
-- [ ] `php -l`, `node --check` and `php tests/unit.php` pass
+- [ ] `php -l`, `node --check`, `tests/modules.mjs`, `php tests/unit.php` and `php tests/plugin.php` pass
 - [ ] New SQL uses literals and `quoteIdent()`, never raw input
 - [ ] New operations that write are added to `LOGGED` (audit log)
 - [ ] `CHANGELOG.md` has a line under **Unreleased**

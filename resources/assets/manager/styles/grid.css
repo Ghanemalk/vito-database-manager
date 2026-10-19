@@ -1,0 +1,318 @@
+/* The rows grid: toolbar, filter chips, the table, how values look, the pager and loading indicators. */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.toolbar .input-icon {
+  width: 260px;
+  max-width: 100%;
+}
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 3px 4px 3px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 1px solid var(--border);
+  max-width: 100%;
+}
+.chip b {
+  font-weight: 600;
+}
+.chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 260px;
+}
+.chip button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 50%;
+  color: var(--muted-foreground);
+}
+.chip button:hover {
+  background: var(--hover);
+  color: var(--foreground);
+}
+.grid-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+  background: var(--card);
+  position: relative;
+  min-height: 120px;
+  max-height: calc(100vh - 290px);
+}
+table.grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  min-width: 100%;
+}
+table.grid th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--card);
+  text-align: left;
+  font-weight: 500;
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  user-select: none;
+}
+table.grid th .th {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  min-width: 0;
+}
+table.grid th .th:hover {
+  background: var(--hover);
+}
+table.grid th .th .t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+table.grid th .type {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  font-weight: 400;
+  font-family: var(--font-mono);
+}
+table.grid th .sort {
+  display: inline-flex;
+  align-items: center;
+  color: var(--primary);
+  font-size: 11px;
+  gap: 1px;
+}
+table.grid th .rs {
+  position: absolute;
+  right: -3px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 3;
+}
+table.grid th {
+  position: sticky;
+}
+table.grid td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
+  cursor: default;
+}
+table.grid tbody tr:hover td {
+  background: var(--hover);
+}
+table.grid tbody tr.sel td {
+  background: var(--selected);
+}
+table.grid td.c-check,
+table.grid th.c-check {
+  width: 38px;
+  min-width: 38px;
+  max-width: 38px;
+  text-align: center;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--card);
+  padding: 0 8px;
+  vertical-align: middle;
+}
+table.grid .c-check input {
+  margin: 0;
+  vertical-align: middle;
+}
+table.grid th.c-check {
+  z-index: 3;
+}
+table.grid tbody tr:hover td.c-check {
+  background: var(--hover);
+}
+table.grid tbody tr.sel td.c-check {
+  background: color-mix(in oklch, var(--card), var(--primary) 8%);
+}
+table.grid td.c-open,
+table.grid th.c-open {
+  width: 34px;
+  min-width: 34px;
+  max-width: 34px;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  position: sticky;
+  left: 38px;
+  z-index: 1;
+  background: var(--card);
+}
+table.grid th.c-open {
+  z-index: 3;
+}
+table.grid tbody tr:hover td.c-open {
+  background: var(--hover);
+}
+table.grid tbody tr.sel td.c-open {
+  background: color-mix(in oklch, var(--card), var(--primary) 8%);
+}
+table.grid .open-row {
+  border: 0;
+  background: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 6px;
+  opacity: 0.55;
+}
+table.grid tr:hover .open-row {
+  opacity: 1;
+}
+table.grid .open-row:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+table.grid .open-row svg {
+  width: 14px;
+  height: 14px;
+}
+table.grid td {
+  unicode-bidi: plaintext;
+  text-align: left;
+}
+table.grid td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+table.grid td.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+table.grid td.editing {
+  padding: 0;
+  overflow: visible;
+}
+table.grid td.editing input,
+table.grid td.editing select {
+  width: 100%;
+  min-width: 160px;
+  height: 33px;
+  border: 2px solid var(--primary);
+  border-radius: 0;
+  padding: 0 8px;
+  background: var(--background);
+  outline: none;
+}
+.v-null {
+  color: var(--null);
+  font-style: italic;
+  font-size: 12px;
+}
+.v-empty {
+  color: var(--null);
+  font-size: 12px;
+}
+.v-bin {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.v-more {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  margin-left: 6px;
+}
+.v-bool {
+  display: inline-block;
+  font-size: 11px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.v-bool.on {
+  color: var(--success);
+  border-color: oklch(0.648 0.2 131.684 / 40%);
+}
+.grid-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.grid-foot .pager {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.grid-foot .pager .input {
+  width: 64px;
+  text-align: center;
+}
+.loading-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  overflow: hidden;
+  z-index: 5;
+}
+.loading-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--primary);
+  animation: vdbm-ind 1s linear infinite;
+}
+@keyframes vdbm-ind {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: vdbm-spin 0.7s linear infinite;
+  flex: none;
+}
+@keyframes vdbm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

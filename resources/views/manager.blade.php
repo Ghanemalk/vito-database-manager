@@ -49,6 +49,6 @@
 <body>
     <div id="vdbm"></div>
     <script type="application/json" id="vdbm-boot">{!! json_encode($boot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) !!}</script>
-    <script src="{{ $js }}" defer></script>
+    <script type="module" src="{{ $js }}"></script>
 </body>
 </html>

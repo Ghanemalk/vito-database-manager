@@ -219,7 +219,7 @@ digits, no dashes). The plugin works under any vendor and name you choose.
 ```bash
 cd /path/to/vito/app/Vito/Plugins
 mkdir -p Community
-git clone --depth 1 --branch v1.0.2 https://github.com/Ghanemalk/vito-database-manager Community/VitoDatabaseManager
+git clone --depth 1 --branch v1.1.0 https://github.com/Ghanemalk/vito-database-manager Community/VitoDatabaseManager
 chown -R www-data:www-data Community        # the user PHP runs as
 ```
 
@@ -300,8 +300,8 @@ A database client inside a control panel is a powerful thing. These are the rule
 **Who can open it.** Opening the manager, and every request it makes, requires Vito's `update` permission on **both**
 the server and the database. In Vito that means the **Owner** or **Admin** role in the server's project. A database
 is only reachable through the server it belongs to, and any other combination returns 404. The only things served
-without a session are the plugin's static files (`launcher.js`, `manager.js`, `manager.css`), the same files as in
-this repository, because the launcher also loads on the sign-in page.
+without a session are the plugin's static files (the JavaScript and CSS under `resources/assets/`), the same files as
+in this repository, because the launcher also loads on the sign-in page.
 
 **Why Vito's read-only role is refused.** The manager connects as the server's administrative database account:
 `root` over the local socket on MySQL and MariaDB, and `postgres` on PostgreSQL. That is the same access Vito itself
@@ -352,7 +352,7 @@ Found a vulnerability? Please report it privately. See [SECURITY.md](SECURITY.md
 
 ```mermaid
 flowchart LR
-    B["Browser<br/>manager.js"] -- "POST /servers/{id}/database-manager/{db}/api<br/>CSRF + Vito session" --> C["ManagerController<br/>(inside Vito)"]
+    B["Browser<br/>the manager's page"] -- "POST /servers/{id}/database-manager/{db}/api<br/>CSRF + Vito session" --> C["ManagerController<br/>(inside Vito)"]
     C -- "authorize update<br/>on server and database" --> C
     C --> E["Engine<br/>MySQL / MariaDB / PostgreSQL"]
     E -- "one script per action<br/>over Vito's SSH key" --> S["Server<br/>sudo -n mysql / mariadb / psql"]
@@ -380,7 +380,11 @@ flowchart LR
   refreshed when a statement reports that the cache is out of date.
 - **`src/Sql/Splitter.php`** splits scripts into statements the way each server does, covering quotes, comments,
   the `mysql` client's `DELIMITER` lines and PostgreSQL's dollar quoting. It is what makes per-line errors and read-only checks possible.
-- **`resources/assets/`** holds the whole UI as plain JavaScript and CSS. There is no framework and no build step.
+- **`resources/assets/manager/`** holds the UI as plain JavaScript modules and CSS, split by page and feature. There
+  is no framework and no build step: the browser loads the modules as they are in this repository.
+
+[ARCHITECTURE.md](ARCHITECTURE.md) maps the code in more detail. It follows one request from the browser to the
+server and back, lists what each file holds, and says where to look for a given change.
 
 **A note for plugin authors:** Vito caches its routes, so `route('…')` cannot see the names of routes a plugin
 registers at boot. This plugin builds its URLs from paths instead.
@@ -504,10 +508,12 @@ The plugin is plain PHP 8.3+ and plain JavaScript, with nothing to install or bu
 ```bash
 # lint
 find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
-node --check resources/assets/manager.js && node --check resources/assets/launcher.js
+node --check resources/assets/launcher.js
+node --experimental-vm-modules tests/modules.mjs   # every module parses and every import resolves
 
-# unit tests (no database needed)
+# unit tests, and how Plugin.php loads in Vito (no database needed)
 php tests/unit.php
+php tests/plugin.php
 
 # integration tests against throwaway Docker containers (needs Docker)
 sh tests/run-docker.sh mysql:8.4 mysql:9.7 mariadb:10.11 mariadb:11.4 mariadb:11.8 mariadb:12.3 \
@@ -524,21 +530,34 @@ php tests/integration.php mariadb "docker exec -i my-mariadb mariadb" scratch_db
 It creates and drops tables, so give it an empty, disposable database. GitHub Actions runs the lint, the unit tests
 and the integration suite on all ten images for every push and pull request.
 
+To work on the UI without Vito, `tests/dev/server.php` runs the manager in a browser against a scratch database on
+your machine:
+
+```bash
+VDBM_FLAVOR=mysql VDBM_CLIENT="mysql -h 127.0.0.1 -P 3306 -u root" VDBM_DATABASE=scratch \
+    php -S 127.0.0.1:8080 tests/dev/server.php
+```
+
 ```text
 .
 ├── Plugin.php                     # entry point Vito loads; registers views, routes and the launcher
 ├── resources/
-│   ├── assets/manager.js          # the whole UI
-│   ├── assets/manager.css
 │   ├── assets/launcher.js         # the Open buttons, and the frame that shows the manager inside Vito
+│   ├── assets/manager/            # the UI: main.js loads the rest
+│   │   ├── pages/                 # overview, a table's page, SQL console, processes
+│   │   ├── rows/                  # the Rows tab: grid, filters, row editor, import, export
+│   │   ├── structure/             # the Columns, Indexes, Relations and Settings tabs, New table
+│   │   ├── ui/  lib/              # building blocks and helpers
+│   │   └── styles/                # main.css loads the rest
 │   └── views/manager.blade.php
 ├── src/
-│   ├── Engines/                   # Engine (shared), MysqlEngine (MySQL and MariaDB), PostgresEngine
+│   ├── Engines/                   # Engine (shared), MysqlEngine (MySQL and MariaDB), PostgresEngine,
+│   │                              # each split by area into Concerns/, Mysql/ and Postgres/
 │   ├── Sql/Splitter.php           # statement splitter for both dialects
 │   ├── Transport/                 # SSH (Vito) and local process (tests) transports
 │   ├── Support/                   # errors and the metadata cache contract
 │   └── Vito/                      # controller, launcher middleware, Vito cache adapter
-└── tests/                         # unit.php, integration.php, run-docker.sh
+└── tests/                         # unit, plugin and integration tests, the module check, dev/ server
 ```
 
 ## Sponsoring

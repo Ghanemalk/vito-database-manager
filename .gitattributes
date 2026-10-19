@@ -11,3 +11,5 @@
 /.gitattributes     export-ignore
 /.gitignore         export-ignore
 /CONTRIBUTING.md    export-ignore
+/ARCHITECTURE.md    export-ignore
+/.prettierrc.json   export-ignore

@@ -37,7 +37,14 @@ namespace Illuminate\Support\Facades {
         private static array $current = [];
         private array $middleware = [];
         public static function middleware(array $m): self { $r = new self(); $r->middleware = $m; return $r; }
-        public function group(\Closure $routes): void { self::$groups++; $outer = self::$current; self::$current = $this->middleware; $routes(); self::$current = $outer; }
+        public function group(\Closure $routes): void
+        {
+            self::$groups++;
+            $outer = self::$current;
+            self::$current = $this->middleware;
+            $routes();
+            self::$current = $outer;
+        }
         // Route::get() inside a group, or Route::middleware([...])->get() on its own
         public static function __callStatic(string $verb, array $a): object { return self::add($a[0], self::$current); }
         public function __call(string $verb, array $a): object { return self::add($a[0], $this->middleware); }
@@ -110,8 +117,16 @@ $state = json_decode((string) strstr($r['out'], '{'), true);
 T::eq('registers its routes once', 1, $state['groups'] ?? null);
 T::eq('adds the launcher middleware once', 1, count($state['middleware']['web'] ?? []));
 $routes = $state['routes'] ?? [];
-T::eq('serves its static files without a session (the launcher loads on the sign-in page)', ['web'], $routes['database-manager/assets/{file}'] ?? null);
-foreach (['servers/{server}/database-manager/list', 'servers/{server}/database-manager/{database?}', 'servers/{server}/database-manager/{database}/api'] as $uri) {
+T::eq(
+    'serves its static files without a session (the launcher loads on the sign-in page)',
+    ['web'],
+    $routes['database-manager/assets/{stamp}/{path}'] ?? null,
+);
+foreach ([
+    'servers/{server}/database-manager/list',
+    'servers/{server}/database-manager/{database?}',
+    'servers/{server}/database-manager/{database}/api',
+] as $uri) {
     T::ok("{$uri} needs a session", in_array('auth', $routes[$uri] ?? [], true), json_encode($routes[$uri] ?? null));
 }
 

@@ -32,10 +32,10 @@ jobs:
       - name: PHP syntax
         run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
 
-      - name: JavaScript syntax
+      - name: JavaScript
         run: |
-          node --check resources/assets/manager.js
           node --check resources/assets/launcher.js
+          node --experimental-vm-modules tests/modules.mjs
 
       - name: Unit tests
         run: php tests/unit.php

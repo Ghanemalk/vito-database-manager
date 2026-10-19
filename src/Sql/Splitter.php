@@ -107,7 +107,11 @@ final class Splitter
                     : $c !== '`';
                 $end = self::quoteEnd($sql, $i, $c, $escapes);
                 if ($end === null) {
-                    throw new DbmException(sprintf('Line %d: this %s is never closed.', $line, $c === "'" ? 'string' : 'quoted name'), 'input', ['line' => $line]);
+                    throw new DbmException(
+                        sprintf('Line %d: this %s is never closed.', $line, $c === "'" ? 'string' : 'quoted name'),
+                        'input',
+                        ['line' => $line],
+                    );
                 }
                 $take(substr($sql, $i, $end - $i), true);
                 $i = $end;
@@ -233,7 +237,10 @@ final class Splitter
             return false;
         }
         foreach ($words as $k => [$word, $depth, $call]) {
-            if (in_array($word, ['INSERT', 'UPDATE', 'DELETE', 'MERGE', 'REPLACE', 'TRUNCATE', 'DROP', 'ALTER', 'CREATE', 'GRANT', 'REVOKE', 'CALL', 'DO', 'COPY', 'LOAD', 'HANDLER'], true)) {
+            if (in_array($word, [
+                'INSERT', 'UPDATE', 'DELETE', 'MERGE', 'REPLACE', 'TRUNCATE', 'DROP', 'ALTER', 'CREATE', 'GRANT', 'REVOKE', 'CALL',
+                'DO', 'COPY', 'LOAD', 'HANDLER',
+            ], true)) {
                 // REPLACE(), INSERT(), TRUNCATE() are string/number functions; SELECT ... FOR UPDATE only locks
                 if ($call && in_array($word, ['REPLACE', 'INSERT', 'TRUNCATE'], true)) {
                     continue;

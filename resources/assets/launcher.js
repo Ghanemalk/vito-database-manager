@@ -21,12 +21,14 @@
   let titleSet = null;
   let missingSince = 0;
 
-  const ICON = '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>';
+  const ICON =
+    '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>';
   // While the manager is open, Vito's sidebar takes its own collapsed look (only the icon rail, as on Vito's pages
   // without a second menu), so the manager's table list is the only one; the user's sidebar setting is untouched.
   const STYLE = `
 html.vdbm-open [data-slot="sidebar-wrapper"] { --sidebar-width: calc(var(--sidebar-width-icon) + 1px) !important; }
-html.vdbm-open [data-slot="sidebar-wrapper"] > [data-slot="sidebar"] [data-sidebar="sidebar"] > [data-slot="sidebar"]:not(:first-child) { display: none !important; }
+html.vdbm-open [data-slot="sidebar-wrapper"] > [data-slot="sidebar"]
+  [data-sidebar="sidebar"] > [data-slot="sidebar"]:not(:first-child) { display: none !important; }
 html.vdbm-open [data-vdbm-content] > :not(#vdbm-host) { display: none !important; }
 html.vdbm-open, html.vdbm-open body { overflow: hidden; }
 #vdbm-host { display: block; width: 100%; min-height: 320px; }
@@ -255,8 +257,18 @@ html.vdbm-open, html.vdbm-open body { overflow: hidden; }
   // ── buttons on the Databases page ───────────────────────────────────────────────────────
   function svg() {
     const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', width: '24', height: '24', fill: 'none', stroke: 'currentColor',
-      'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) s.setAttribute(k, v);
+    const attrs = {
+      viewBox: '0 0 24 24',
+      width: '24',
+      height: '24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '2',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'aria-hidden': 'true',
+    };
+    for (const [k, v] of Object.entries(attrs)) s.setAttribute(k, v);
     s.innerHTML = ICON; // constant markup
     return s;
   }
@@ -289,8 +301,16 @@ html.vdbm-open, html.vdbm-open body { overflow: hidden; }
     if (group && data.databases[0] && !group.querySelector(`[${MARK}]`)) {
       const outline = docs.querySelector('button');
       const cls = outline ? outline.className : '';
-      group.insertBefore(link(data.databases[0], cls, 'Database Manager', 'hidden lg:block',
-        'Browse and edit tables, run SQL and watch queries'), group.firstChild);
+      group.insertBefore(
+        link(
+          data.databases[0],
+          cls,
+          'Database Manager',
+          'hidden lg:block',
+          'Browse and edit tables, run SQL and watch queries',
+        ),
+        group.firstChild,
+      );
     }
 
     // each row: an "Open" button before the row menu
@@ -299,7 +319,9 @@ html.vdbm-open, html.vdbm-open body { overflow: hidden; }
     const outlineCls = docs && docs.querySelector('button') ? docs.querySelector('button').className : '';
     for (const tr of document.querySelectorAll('table tbody tr')) {
       if (tr.querySelector(`[${MARK}]`)) continue;
-      const trigger = Array.from(tr.querySelectorAll('button')).find((b) => (b.textContent || '').trim() === 'Open menu');
+      const trigger = Array.from(tr.querySelectorAll('button')).find(
+        (b) => (b.textContent || '').trim() === 'Open menu',
+      );
       if (!trigger) continue;
       let db = null;
       for (const td of tr.cells) {

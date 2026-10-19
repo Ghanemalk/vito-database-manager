@@ -1,0 +1,113 @@
+/* Cards, stat tiles, lists, progress bars and code blocks. */
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.card-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+.card-body {
+  padding: 16px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.stat {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  background: var(--card);
+  min-width: 0;
+}
+.stat .k {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.stat .v {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stat .s {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-top: 2px;
+}
+table.list {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.list th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  background: var(--card);
+}
+table.list td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+table.list tr:last-child td {
+  border-bottom: 0;
+}
+table.list tr.click {
+  cursor: pointer;
+}
+table.list tr.click:hover td {
+  background: var(--hover);
+}
+table.list td.actions {
+  text-align: right;
+  white-space: nowrap;
+  width: 1%;
+}
+table.list .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--accent);
+  overflow: hidden;
+  min-width: 60px;
+}
+.bar > i {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+}
+pre.code {
+  margin: 0;
+  padding: 14px 16px;
+  overflow: auto;
+  font: 12.5px/1.6 var(--font-mono);
+  white-space: pre;
+  tab-size: 4;
+  max-height: 520px;
+}

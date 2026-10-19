@@ -6,6 +6,36 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-19
+
+This release changes how the code is organised, not what the plugin does. Every feature, screen and API call works as
+in 1.0.2.
+
+### Changed
+
+- **The code is split into files that a person can read.** Vito installs a plugin straight from its folder and lets
+  the plugin serve its own files, with no build step in between. This release makes full use of that. Instead of
+  keeping to the minimum a plugin needs, the code is split by feature. Each file has one job and can be read on its
+  own, and Vito loads and runs it exactly as before.
+  - The UI used to be one `manager.js` and one `manager.css`. It is now 35 JavaScript modules in
+    `resources/assets/manager/` (`pages/`, `rows/`, `structure/`, `ui/`, `lib/`) and 10 style sheets in `styles/`.
+    The browser loads the modules as they are, so there is still nothing to build.
+  - The engines are split by area into traits. What all engines share is in `src/Engines/Concerns/`, and the MySQL
+    and PostgreSQL parts are in `src/Engines/Mysql/` and `src/Engines/Postgres/`.
+  - Every file starts with a comment that says what it holds, and the main functions say what they do. The code is
+    formatted the same way throughout: Prettier for JavaScript and CSS, Laravel's style for PHP.
+- The plugin's static files are served from `database-manager/assets/<stamp>/<path>`. The stamp changes whenever a
+  file changes, so after an update a browser never mixes an older module with a newer one.
+
+### Added
+
+- `ARCHITECTURE.md`, a map of the code. It follows one request from the browser to the server and back, lists what
+  each file holds, and says where to look for a given change.
+- `tests/modules.mjs` checks, without running anything, that every module parses, that every import points at a file
+  and a name that exist, and that no module is left unused. CI runs it with the other checks.
+- `tests/dev/server.php` runs the manager in a browser without Vito, against a scratch database, for work on the UI.
+- `.prettierrc.json` holds the formatting settings.
+
 ## [1.0.2] - 2026-10-19
 
 ### Fixed
@@ -79,7 +109,8 @@ The first public release.
 - **Supported engines:** MySQL 8.4 and 9.7, MariaDB 10.11, 11.4, 11.8 and 12.3, and PostgreSQL 15, 16, 17 and 18,
   each covered by the integration suite.
 
-[Unreleased]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Ghanemalk/vito-database-manager/releases/tag/v1.0.0

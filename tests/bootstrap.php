@@ -23,7 +23,10 @@ final class T
 
             return;
         }
-        $msg = $label.($detail !== null ? ' — '.(is_string($detail) ? $detail : json_encode($detail, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) : '');
+        if ($detail !== null && ! is_string($detail)) {
+            $detail = json_encode($detail, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        $msg = $label.($detail !== null ? ' — '.$detail : '');
         self::$fail[] = $msg;
         fwrite(STDOUT, "  FAIL {$msg}\n");
     }

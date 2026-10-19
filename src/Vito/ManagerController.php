@@ -5,12 +5,15 @@ namespace VitoDbManager\Vito;
 use App\Http\Controllers\Controller;
 use App\Models\Database;
 use App\Models\Server;
+use FilesystemIterator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Net\SSH2;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -24,14 +27,23 @@ use VitoDbManager\Transport\SshTransport;
  */
 final class ManagerController extends Controller
 {
-    public const VERSION = '1.0.2';
+    public const VERSION = '1.1.0';
 
-    private const OPS = ['overview', 'structure', 'rows', 'row', 'insert', 'update', 'delete', 'insert_many', 'sql', 'monitor', 'kill', 'export', 'ddl', 'stash'];
+    private const OPS = [
+        'overview', 'structure', 'rows', 'row', 'insert', 'update', 'delete', 'insert_many', 'sql', 'monitor', 'kill', 'export',
+        'ddl', 'stash',
+    ];
 
     /** Operations written to the audit log. */
     private const LOGGED = ['insert', 'update', 'delete', 'insert_many', 'sql', 'kill', 'export', 'ddl'];
 
-    private const ASSETS = ['manager.js' => 'text/javascript', 'manager.css' => 'text/css', 'launcher.js' => 'text/javascript'];
+    /**
+     * The browser files, served from resources/assets: lowercase folder and file names, .js or .css. The pattern also
+     * keeps a request inside that folder (no dots apart from the extension).
+     */
+    private const ASSET_PATH = '#^[a-z0-9-]+(?:/[a-z0-9-]+)*\.(js|css)$#';
+
+    private const ASSET_TYPES = ['js' => 'text/javascript', 'css' => 'text/css'];
 
     /** Scripts larger than PHP's post_max_size arrive in parts (see stash()). */
     private const STASH_LIMIT = 50 * 1024 * 1024;
@@ -84,8 +96,8 @@ final class ManagerController extends Controller
             ->view('vdbm::manager', [
                 'boot' => $boot,
                 'title' => ($database ? $database->name.' · ' : '').$server->name,
-                'css' => $this->assetUrl('manager.css'),
-                'js' => $this->assetUrl('manager.js'),
+                'css' => self::assetUrl('manager/styles/main.css'),
+                'js' => self::assetUrl('manager/main.js'),
             ])
             ->header('Cache-Control', 'no-store, private')
             ->header('Referrer-Policy', 'same-origin')
@@ -170,12 +182,16 @@ final class ManagerController extends Controller
         ];
     }
 
-    public function asset(string $file): BinaryFileResponse
+    /**
+     * One of the browser files. The stamp in the URL only keeps browsers from using an older copy (see assetUrl()); the
+     * manager's scripts are ES modules that import each other by relative path, so it sits in the path, not the query.
+     */
+    public function asset(string $stamp, string $path): BinaryFileResponse
     {
-        abort_unless(isset(self::ASSETS[$file]), 404);
+        abort_unless(preg_match(self::ASSET_PATH, $path, $match) === 1 && is_file(self::assetPath($path)), 404);
 
-        return response()->file(self::assetPath($file), [
-            'Content-Type' => self::ASSETS[$file].'; charset=utf-8',
+        return response()->file(self::assetPath($path), [
+            'Content-Type' => self::ASSET_TYPES[$match[1]].'; charset=utf-8',
             'Cache-Control' => 'private, max-age=31536000, immutable',
             'X-Content-Type-Options' => 'nosniff',
         ]);
@@ -207,16 +223,35 @@ final class ManagerController extends Controller
         return $page.($database !== null ? '?manager='.$database : '');
     }
 
-    public static function assetUrl(string $file): string
+    public static function assetUrl(string $path): string
     {
-        $stamp = substr(md5(self::VERSION.'|'.@filemtime(self::assetPath($file))), 0, 10);
-
-        return url('database-manager/assets/'.$file).'?v='.$stamp;
+        return url('database-manager/assets/'.self::assetStamp().'/'.$path);
     }
 
-    private static function assetPath(string $file): string
+    /**
+     * Changes with the version and with any change to the browser files, so every file of a new release gets a new
+     * URL (the files are cached for a year).
+     */
+    private static function assetStamp(): string
     {
-        return dirname(__DIR__, 2).'/resources/assets/'.$file;
+        static $stamp = null;
+        if ($stamp === null) {
+            $newest = 0;
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(self::assetPath(''), FilesystemIterator::SKIP_DOTS),
+            );
+            foreach ($files as $file) {
+                $newest = max($newest, (int) $file->getMTime());
+            }
+            $stamp = substr(md5(self::VERSION.'|'.$newest), 0, 10);
+        }
+
+        return $stamp;
+    }
+
+    private static function assetPath(string $path): string
+    {
+        return dirname(__DIR__, 2).'/resources/assets/'.$path;
     }
 
     private function engine(Server $server, Database $database): Engine
@@ -311,7 +346,8 @@ final class ManagerController extends Controller
             'sql' => (! empty($args['readonly']) ? '[read-only] ' : '').mb_substr((string) ($args['sql'] ?? ''), 0, 4000),
             'ddl' => json_encode(array_diff_key($args, ['dry' => 1]), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
             'delete' => 'table='.json_encode($table, JSON_UNESCAPED_UNICODE).' keys='.count((array) ($args['keys'] ?? [])),
-            'insert_many' => 'table='.json_encode($table, JSON_UNESCAPED_UNICODE).' rows='.count((array) ($args['rows'] ?? [])).' mode='.($args['mode'] ?? 'insert'),
+            'insert_many' => 'table='.json_encode($table, JSON_UNESCAPED_UNICODE).' rows='.count((array) ($args['rows'] ?? []))
+                .' mode='.($args['mode'] ?? 'insert'),
             'kill' => 'id='.json_encode($args['id'] ?? null).(empty($args['connection']) ? ' query' : ' connection'),
             'export' => 'table='.json_encode($table, JSON_UNESCAPED_UNICODE).' format='.($args['format'] ?? 'csv'),
             default => 'table='.json_encode($table, JSON_UNESCAPED_UNICODE),

@@ -1,0 +1,160 @@
+/* The SQL editor, syntax colours, query results and the history. */
+
+.sql-page {
+  display: grid;
+  grid-template-rows: auto clamp(160px, 42vh, 560px) auto auto;
+  align-content: start;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  min-height: 100%;
+}
+.editor {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+  display: flex;
+  min-height: 160px;
+}
+.editor .gutter {
+  flex: none;
+  padding: 12px 8px 12px 12px;
+  text-align: right;
+  color: var(--muted-foreground);
+  font: 13px/1.6 var(--font-mono);
+  user-select: none;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  min-width: 44px;
+}
+.editor .gutter div.err {
+  color: var(--destructive);
+  font-weight: 700;
+}
+.editor .area {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.editor pre,
+.editor textarea {
+  margin: 0;
+  position: absolute;
+  inset: 0;
+  padding: 12px 14px;
+  font: 13px/1.6 var(--font-mono);
+  white-space: pre;
+  tab-size: 4;
+  overflow: auto;
+  border: 0;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+.editor pre {
+  pointer-events: none;
+  color: var(--foreground);
+}
+.editor .err-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  background: oklch(0.577 0.245 27.325 / 16%);
+  box-shadow: inset 2px 0 0 var(--destructive);
+}
+.editor textarea {
+  background: transparent;
+  color: transparent;
+  caret-color: var(--foreground);
+  resize: none;
+  outline: none;
+}
+.editor textarea::selection {
+  background: oklch(0.6 0.15 277 / 30%);
+  color: transparent;
+}
+.tk-k {
+  color: var(--tok-keyword);
+  font-weight: 600;
+}
+.tk-s {
+  color: var(--tok-string);
+}
+.tk-n {
+  color: var(--tok-number);
+}
+.tk-c {
+  color: var(--tok-comment);
+  font-style: italic;
+}
+.tk-i {
+  color: var(--tok-ident);
+}
+.tk-f {
+  color: var(--tok-func);
+}
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.result {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  min-width: 0;
+  overflow: hidden;
+}
+.result-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted-foreground);
+  min-width: 0;
+}
+.result-head code {
+  font-family: var(--font-mono);
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.result .grid-wrap {
+  border: 0;
+  border-radius: 0;
+  max-height: 420px;
+  min-height: 0;
+}
+.result-msg {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.history-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.history-item:hover {
+  background: var(--accent);
+}
+.history-item code {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 420px;
+}

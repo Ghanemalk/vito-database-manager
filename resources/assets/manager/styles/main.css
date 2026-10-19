@@ -1,0 +1,14 @@
+/*
+ * The manager's styles, in the order they apply. It uses Vito's theme tokens (theme.css) so it looks native in
+ * light and dark.
+ */
+
+@import url('theme.css');
+@import url('base.css');
+@import url('shell.css');
+@import url('controls.css');
+@import url('cards.css');
+@import url('grid.css');
+@import url('overlays.css');
+@import url('sql.css');
+@import url('responsive.css');
