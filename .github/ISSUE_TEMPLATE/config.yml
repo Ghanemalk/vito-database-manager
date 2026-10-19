@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Ghanemalk/vito-database-manager/security/advisories/new
+    about: Please report security problems privately, never in a public issue.
+  - name: VitoDeploy plugin documentation
+    url: https://vitodeploy.com/docs/plugins
+    about: How plugins are installed, enabled and updated in Vito.
+  - name: Questions and ideas
+    url: https://github.com/Ghanemalk/vito-database-manager/discussions
+    about: Ask how to do something or share an idea before it becomes a feature request.

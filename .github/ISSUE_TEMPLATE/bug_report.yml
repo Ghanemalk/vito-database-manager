@@ -1,0 +1,94 @@
+name: Bug report
+description: Something in the Database Manager does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. **Found a security problem?** Please don't file it here; follow
+        [SECURITY.md](https://github.com/Ghanemalk/vito-database-manager/blob/main/SECURITY.md) instead.
+
+        Before you paste anything, remove passwords, keys, hostnames and real customer data.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        I opened the orders table, filtered on status = 'paid' and…
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A minimal table definition (CREATE TABLE) and the steps that trigger the problem help most.
+      placeholder: |
+        1. CREATE TABLE t (id int primary key, …);
+        2. Open the table and …
+        3. See the error "…"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Database engine
+      options:
+        - MySQL
+        - MariaDB
+        - PostgreSQL
+    validations:
+      required: true
+
+  - type: input
+    id: engine-version
+    attributes:
+      label: Engine version
+      description: Shown at the top right of the manager, e.g. "MariaDB 11.8.3" or "PostgreSQL 17.6".
+    validations:
+      required: true
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: Shown in Vito under Admin → Plugins.
+      placeholder: v1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: vito-version
+    attributes:
+      label: Vito version
+      placeholder: "4.1.1"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Chrome 141 on macOS, Safari on iPhone…
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Errors and logs
+      description: |
+        The error shown in the manager, the browser console, and any matching lines from Vito's
+        `storage/logs/laravel.log` or the plugin's logs in Admin → Plugins.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I removed passwords, keys, hostnames and real data from everything above.
+          required: true

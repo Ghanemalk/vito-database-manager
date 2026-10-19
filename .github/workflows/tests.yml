@@ -1,0 +1,74 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: PHP syntax
+        run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+      - name: JavaScript syntax
+        run: |
+          node --check resources/assets/manager.js
+          node --check resources/assets/launcher.js
+
+      - name: Unit tests
+        run: php tests/unit.php
+
+  integration:
+    name: ${{ matrix.image }}
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - mysql:8.4
+          - mysql:9.7
+          - mariadb:10.11
+          - mariadb:11.4
+          - mariadb:11.8
+          - mariadb:12.3
+          - postgres:15
+          - postgres:16
+          - postgres:17
+          - postgres:18
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Pull ${{ matrix.image }}
+        run: docker pull ${{ matrix.image }}
+
+      - name: Integration tests
+        run: sh tests/run-docker.sh ${{ matrix.image }}

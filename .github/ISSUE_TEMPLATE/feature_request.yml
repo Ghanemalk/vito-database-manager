@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest an idea or an improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the task or the problem, not only the solution. "I need to…, but today I have to…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help?
+      description: How you imagine it working. Sketches and screenshots of other tools are welcome.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: engines
+    attributes:
+      label: Which engines does this concern?
+      multiple: true
+      options:
+        - MySQL
+        - MariaDB
+        - PostgreSQL
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Workarounds you use today, or other ways to solve this.
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I'd like to open a pull request for this.
