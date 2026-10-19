@@ -40,6 +40,9 @@ jobs:
       - name: Unit tests
         run: php tests/unit.php
 
+      - name: Plugin loading
+        run: php tests/plugin.php
+
   integration:
     name: ${{ matrix.image }}
     needs: lint

@@ -24,7 +24,7 @@ use VitoDbManager\Transport\SshTransport;
  */
 final class ManagerController extends Controller
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.0.1';
 
     private const OPS = ['overview', 'structure', 'rows', 'row', 'insert', 'update', 'delete', 'insert_many', 'sql', 'monitor', 'kill', 'export', 'ddl', 'stash'];
 

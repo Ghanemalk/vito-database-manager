@@ -219,7 +219,7 @@ digits, no dashes). The plugin works under any vendor and name you choose.
 ```bash
 cd /path/to/vito/app/Vito/Plugins
 mkdir -p Community
-git clone --depth 1 --branch v1.0.0 https://github.com/Ghanemalk/vito-database-manager Community/VitoDatabaseManager
+git clone --depth 1 --branch v1.0.1 https://github.com/Ghanemalk/vito-database-manager Community/VitoDatabaseManager
 chown -R www-data:www-data Community        # the user PHP runs as
 ```
 

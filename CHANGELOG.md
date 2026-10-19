@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-19
+
+### Fixed
+
+- A second copy of the plugin in the same Vito no longer takes Vito down. Installing the plugin from GitHub next to
+  a manual install declared its class twice, which is a fatal PHP error. Now the first copy loaded declares the
+  classes, a later copy only adds its own name, and the plugin boots once.
+
 ## [1.0.0] - 2026-10-19
 
 The first public release.
@@ -54,5 +62,6 @@ The first public release.
 - **Supported engines:** MySQL 8.4 and 9.7, MariaDB 10.11, 11.4, 11.8 and 12.3, and PostgreSQL 15, 16, 17 and 18,
   each covered by the integration suite.
 
-[Unreleased]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Ghanemalk/vito-database-manager/releases/tag/v1.0.0
