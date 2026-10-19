@@ -24,7 +24,7 @@ use VitoDbManager\Transport\SshTransport;
  */
 final class ManagerController extends Controller
 {
-    public const VERSION = '1.0.1';
+    public const VERSION = '1.0.2';
 
     private const OPS = ['overview', 'structure', 'rows', 'row', 'insert', 'update', 'delete', 'insert_many', 'sql', 'monitor', 'kill', 'export', 'ddl', 'stash'];
 
@@ -142,11 +142,24 @@ final class ManagerController extends Controller
      */
     public function databases(Server $server): JsonResponse
     {
+        $list = self::launcherList($server);
+
+        return $list === null ? response()->json(['ok' => false], 403) : response()->json($list);
+    }
+
+    /**
+     * The databases the launcher puts buttons on, or null when the signed-in user may not open the manager on this
+     * server. Also written into the Databases page itself (see InjectLauncher), so its first render has them.
+     *
+     * @return array{ok: true, frame: string, databases: list<array{id: int, name: string, url: string}>}|null
+     */
+    public static function launcherList(Server $server): ?array
+    {
         if (Gate::denies('update', $server) || $server->database() === null) {
-            return response()->json(['ok' => false], 403);
+            return null;
         }
 
-        return response()->json([
+        return [
             'ok' => true,
             'frame' => self::pageUrl($server),
             'databases' => $server->databases()->orderBy('name')->get(['id', 'name'])->map(fn (Database $d) => [
@@ -154,7 +167,7 @@ final class ManagerController extends Controller
                 'name' => $d->name,
                 'url' => self::hostUrl($server, $d->id),
             ])->values()->all(),
-        ]);
+        ];
     }
 
     public function asset(string $file): BinaryFileResponse

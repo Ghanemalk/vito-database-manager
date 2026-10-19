@@ -13,8 +13,10 @@
   const base = ((me && me.dataset.base) || location.origin).replace(/\/+$/, '');
   const basePath = new URL(base, location.href).pathname.replace(/\/+$/, '');
   const MARK = 'data-vdbm';
-  const cache = new Map(); // server id -> {at, data|null}
-  let pending = null;
+  const cache = new Map(); // server id -> {at, data}; at 0: known, but due to be fetched again
+  const pending = new Map(); // server id -> the fetch in flight
+  const failures = new Map(); // server id -> {count, until}
+  let drawn = null; // the list the buttons on the page were made from
   let titleBefore = null;
   let titleSet = null;
   let missingSince = 0;
@@ -30,36 +32,102 @@ html.vdbm-open, html.vdbm-open body { overflow: hidden; }
 #vdbm-host { display: block; width: 100%; min-height: 320px; }
 #vdbm-host > iframe { display: block; width: 100%; height: 100%; border: 0; background: transparent; }`;
 
-  function serverId() {
-    let path = location.pathname;
+  function serverIdOf(path) {
     if (basePath && path.startsWith(basePath)) path = path.slice(basePath.length);
     const m = /^\/servers\/(\d+)\/database\/?$/.exec(path);
     return m ? m[1] : null;
   }
+  const serverId = () => serverIdOf(location.pathname);
   function wanted() {
     const v = new URLSearchParams(location.search).get('manager');
     return v && /^\d+$/.test(v) ? v : null;
   }
   const frameUrl = (server, db, mode) => `${base}/servers/${server}/database-manager/${db}?${mode}=1`;
 
-  async function list(id) {
+  // ── the database list ───────────────────────────────────────────────────────────────────
+  // It is kept for the tab's session, so on every later visit the buttons are drawn with Vito's own render and the
+  // list is fetched again behind them.
+  const storeKey = (id) => `vdbm:list:${base}:${id}`;
+  const usable = (data) => !!(data && data.ok && Array.isArray(data.databases));
+
+  function remember(id, data) {
+    cache.set(id, { at: Date.now(), data });
+    failures.delete(id);
+    try {
+      sessionStorage.setItem(storeKey(id), JSON.stringify(data));
+    } catch {
+      // storage can be blocked; the list in memory still serves this page
+    }
+  }
+
+  function forget(id) {
+    cache.delete(id);
+    try {
+      sessionStorage.removeItem(storeKey(id));
+    } catch {
+      // nothing stored
+    }
+  }
+
+  /** The list as last seen, however old: what the buttons are drawn from while a newer one is fetched. */
+  function known(id) {
     const hit = cache.get(id);
-    if (hit && Date.now() - hit.at < 30000) return hit.data;
-    if (pending && pending.id === id) return pending.promise;
+    if (hit) return hit.data;
+    try {
+      const data = JSON.parse(sessionStorage.getItem(storeKey(id)) || 'null');
+      if (usable(data)) {
+        cache.set(id, { at: 0, data });
+        return data;
+      }
+    } catch {
+      // unreadable: fetched instead
+    }
+    return null;
+  }
+
+  /** Resolves to the server's list, false when this user may not open the manager there, null when it failed. */
+  function list(id) {
+    const hit = cache.get(id);
+    if (hit && hit.at && Date.now() - hit.at < 30000) return Promise.resolve(hit.data);
+    const failed = failures.get(id);
+    if (failed && Date.now() < failed.until) return Promise.resolve(null);
+    if (pending.has(id)) return pending.get(id);
     const promise = fetch(`${base}/servers/${id}/database-manager/list`, {
       credentials: 'same-origin',
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
     })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => (j && j.ok ? j : null))
-      .catch(() => null)
-      .then((data) => {
-        cache.set(id, { at: Date.now(), data });
-        pending = null;
-        return data;
-      });
-    pending = { id, promise };
+      .then(async (r) => {
+        const j = r.ok && !r.redirected ? await r.json().catch(() => null) : null;
+        if (usable(j)) {
+          remember(id, j);
+          return j;
+        }
+        // not allowed here, or signed out: no buttons
+        if (r.redirected || [401, 403, 419].includes(r.status) || (j && j.ok === false)) {
+          forget(id);
+          return false;
+        }
+        throw new Error(`list: ${r.status}`);
+      })
+      .catch(() => {
+        // a passing failure (network, a busy server): the last list stays, and it is asked for again shortly
+        const count = (failures.get(id)?.count || 0) + 1;
+        const wait = Math.min(1000 * 2 ** (count - 1), 15000);
+        failures.set(id, { count, until: Date.now() + wait });
+        setTimeout(schedule, wait + 20);
+        return null;
+      })
+      .finally(() => pending.delete(id));
+    pending.set(id, promise);
     return promise;
+  }
+
+  // Vito served the Databases page itself: the tag carries its list
+  try {
+    const seed = me && me.dataset.list ? JSON.parse(me.dataset.list) : null;
+    if (usable(seed) && serverId()) remember(serverId(), seed);
+  } catch {
+    // fetched instead
   }
 
   // ── the manager inside the page ─────────────────────────────────────────────────────────
@@ -254,6 +322,19 @@ html.vdbm-open, html.vdbm-open body { overflow: hidden; }
     return missing;
   }
 
+  function clearButtons() {
+    drawn = null;
+    for (const el of document.querySelectorAll(`[${MARK}]`)) el.remove();
+  }
+
+  /** Puts the buttons in from this list, first taking out any made from a different one. */
+  function draw(data) {
+    const made = JSON.stringify(data.databases);
+    if (drawn !== null && drawn !== made) clearButtons();
+    drawn = made;
+    return inject(data);
+  }
+
   let timer = null;
   function schedule() {
     clearTimeout(timer);
@@ -265,27 +346,41 @@ html.vdbm-open, html.vdbm-open body { overflow: hidden; }
     if (id && db) mount(id, db);
     else unmount();
     if (!id) return;
+    const before = known(id);
+    if (before) draw(before);
     const data = await list(id);
-    if (!data || serverId() !== id) return;
+    if (serverId() !== id) return;
+    if (data === false) clearButtons();
+    if (!data) return;
     // a row we can't match is most likely a database created since the list was fetched
     const hit = cache.get(id);
-    if (inject(data) > 0 && hit && Date.now() - hit.at > 5000) {
-      cache.delete(id);
+    if (draw(data) > 0 && hit && Date.now() - hit.at > 5000) {
+      hit.at = 0;
       schedule();
     }
   }
 
   const observer = new MutationObserver(() => {
-    if (serverId() || document.getElementById('vdbm-host')) schedule();
+    const id = serverId();
+    // Observer callbacks run before the browser paints, so buttons drawn here appear with Vito's own render.
+    const data = id ? known(id) : null;
+    if (data) draw(data);
+    if (id || document.getElementById('vdbm-host')) schedule();
   });
   const start = () => {
     observer.observe(document.body, { childList: true, subtree: true });
-    schedule();
+    run();
   };
+  document.addEventListener('inertia:start', (e) => {
+    // fetch while Vito is still loading the page, so the list is there for its first render
+    const url = e.detail && e.detail.visit && e.detail.visit.url;
+    const id = url ? serverIdOf(new URL(String(url), location.href).pathname) : null;
+    if (id) list(id);
+  });
   document.addEventListener('inertia:navigate', () => {
-    // the list may have changed (a database was created or deleted)
-    const id = serverId();
-    if (id) cache.delete(id);
+    // the list may have changed (a database was created or deleted): fetched again behind the buttons
+    const hit = cache.get(serverId());
+    if (hit && Date.now() - hit.at > 2000) hit.at = 0;
     schedule();
   });
   window.addEventListener('popstate', schedule);

@@ -32,10 +32,20 @@ namespace Illuminate\Support\Facades {
     final class Route
     {
         public static int $groups = 0;
-        public static function middleware(array $m): self { return new self(); }
-        public function group(\Closure $routes): void { self::$groups++; $routes(); }
-        public static function get(string $uri, array $action): object { return new class { public function __call($n, $a) { return $this; } }; }
-        public static function post(string $uri, array $action): object { return self::get($uri, $action); }
+        /** @var array<string, list<string>> uri => middleware */
+        public static array $routes = [];
+        private static array $current = [];
+        private array $middleware = [];
+        public static function middleware(array $m): self { $r = new self(); $r->middleware = $m; return $r; }
+        public function group(\Closure $routes): void { self::$groups++; $outer = self::$current; self::$current = $this->middleware; $routes(); self::$current = $outer; }
+        // Route::get() inside a group, or Route::middleware([...])->get() on its own
+        public static function __callStatic(string $verb, array $a): object { return self::add($a[0], self::$current); }
+        public function __call(string $verb, array $a): object { return self::add($a[0], $this->middleware); }
+        private static function add(string $uri, array $middleware): object
+        {
+            self::$routes[$uri] = $middleware;
+            return new class { public function __call($n, $a) { return $this; } };
+        }
     }
 }
 namespace {
@@ -81,6 +91,7 @@ $run = static function (array $folders, string $body) use ($stubs): array {
 $report = <<<'PHP'
 echo json_encode([
     'groups' => Illuminate\Support\Facades\Route::$groups,
+    'routes' => Illuminate\Support\Facades\Route::$routes,
     'views' => App\Plugins\RegisterViews::$paths,
     'middleware' => app('router')->groups,
 ]);
@@ -98,6 +109,11 @@ T::ok('has its name', str_starts_with($r['out'], "Database Manager\n"), $r['out'
 $state = json_decode((string) strstr($r['out'], '{'), true);
 T::eq('registers its routes once', 1, $state['groups'] ?? null);
 T::eq('adds the launcher middleware once', 1, count($state['middleware']['web'] ?? []));
+$routes = $state['routes'] ?? [];
+T::eq('serves its static files without a session (the launcher loads on the sign-in page)', ['web'], $routes['database-manager/assets/{file}'] ?? null);
+foreach (['servers/{server}/database-manager/list', 'servers/{server}/database-manager/{database?}', 'servers/{server}/database-manager/{database}/api'] as $uri) {
+    T::ok("{$uri} needs a session", in_array('auth', $routes[$uri] ?? [], true), json_encode($routes[$uri] ?? null));
+}
 
 // a fork or a manual copy under another folder name
 $r = $run(['Someone/MyDbManager'], <<<'PHP'

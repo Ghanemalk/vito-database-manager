@@ -45,8 +45,10 @@ if (! class_exists(Plugin::class, false)) {
                 Route::get('servers/{server}/database-manager/list', [ManagerController::class, 'databases'])->name('vdbm.databases');
                 Route::get('servers/{server}/database-manager/{database?}', [ManagerController::class, 'page'])->whereNumber('database')->name('vdbm.page');
                 Route::post('servers/{server}/database-manager/{database}/api', [ManagerController::class, 'api'])->whereNumber('database')->name('vdbm.api');
-                Route::get('database-manager/assets/{file}', [ManagerController::class, 'asset'])->where('file', '[a-z]+\.(?:js|css)')->name('vdbm.asset');
             });
+            // the launcher is also loaded on the sign-in page (see InjectLauncher), so the plugin's static files are
+            // served without a session; they are the same files as in the public repository
+            Route::middleware(['web'])->get('database-manager/assets/{file}', [ManagerController::class, 'asset'])->where('file', '[a-z]+\.(?:js|css)')->name('vdbm.asset');
 
             app('router')->pushMiddlewareToGroup('web', InjectLauncher::class);
         }

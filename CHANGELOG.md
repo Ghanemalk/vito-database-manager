@@ -6,6 +6,23 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-10-19
+
+### Fixed
+
+- The **Open** and **Database Manager** buttons always appear on the Databases page, in the same frame as Vito's
+  table. Before, they could be missing:
+  - after signing in, because the launcher was only added to pages loaded while signed in, and signing in moves to
+    the next page without a full load. The launcher now loads on every page, the sign-in page included;
+  - for 30 seconds after a failed fetch of the database list. A failed fetch is now retried after 1, 2, 4… seconds.
+- The buttons no longer wait for a request after each page change. The Databases page carries its own list, the list
+  is kept for the tab's session, and it is fetched while Vito is still loading the page.
+
+### Changed
+
+- The plugin's static files (`launcher.js`, `manager.js` and `manager.css`) are served without a session, because the
+  launcher also loads on the sign-in page. They are the same files as in this repository.
+
 ## [1.0.1] - 2026-10-19
 
 ### Fixed
@@ -62,6 +79,7 @@ The first public release.
 - **Supported engines:** MySQL 8.4 and 9.7, MariaDB 10.11, 11.4, 11.8 and 12.3, and PostgreSQL 15, 16, 17 and 18,
   each covered by the integration suite.
 
-[Unreleased]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Ghanemalk/vito-database-manager/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Ghanemalk/vito-database-manager/releases/tag/v1.0.0

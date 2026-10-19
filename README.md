@@ -219,7 +219,7 @@ digits, no dashes). The plugin works under any vendor and name you choose.
 ```bash
 cd /path/to/vito/app/Vito/Plugins
 mkdir -p Community
-git clone --depth 1 --branch v1.0.1 https://github.com/Ghanemalk/vito-database-manager Community/VitoDatabaseManager
+git clone --depth 1 --branch v1.0.2 https://github.com/Ghanemalk/vito-database-manager Community/VitoDatabaseManager
 chown -R www-data:www-data Community        # the user PHP runs as
 ```
 
@@ -299,7 +299,9 @@ A database client inside a control panel is a powerful thing. These are the rule
 
 **Who can open it.** Opening the manager, and every request it makes, requires Vito's `update` permission on **both**
 the server and the database. In Vito that means the **Owner** or **Admin** role in the server's project. A database
-is only reachable through the server it belongs to, and any other combination returns 404.
+is only reachable through the server it belongs to, and any other combination returns 404. The only things served
+without a session are the plugin's static files (`launcher.js`, `manager.js`, `manager.css`), the same files as in
+this repository, because the launcher also loads on the sign-in page.
 
 **Why Vito's read-only role is refused.** The manager connects as the server's administrative database account:
 `root` over the local socket on MySQL and MariaDB, and `postgres` on PostgreSQL. That is the same access Vito itself
@@ -360,8 +362,10 @@ flowchart LR
 ```
 
 - **`Plugin.php`** registers the views and four routes, then adds a middleware that injects a small launcher script
-  into Vito's full page loads. The launcher puts the **Open** buttons on the Databases page, which is a React page
-  the plugin cannot edit directly.
+  into every full page load of Vito, the sign-in page included, since Vito moves between pages without reloading.
+  The launcher puts the **Open** buttons on the Databases page, which is a React page the plugin cannot edit
+  directly. On that page the script tag also carries the database list, so the buttons come with Vito's first
+  render; afterwards the list is kept for the tab's session and fetched while Vito loads each page.
 - **`resources/assets/launcher.js`** also hosts the manager. When the address has `?manager=<id>`, it places a frame
   with the manager's page (`/servers/{id}/database-manager/{db}?embed=1`) in Vito's content area and folds Vito's
   server menu down to its icon rail. The frame keeps the two apart, so neither side's styles or scripts can affect
